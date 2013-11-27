@@ -4,10 +4,11 @@
 // TODOs
 // * Show background <-- done
 // * Show your ship <-- done
-// * Show enemy ships
 // * Move your ship, linear <-- done
-// * Move your ship, angular
+// * Move your ship, angular <-- done
 // * Multiple keypresses <-- done
+// * Show bullets
+// * Show enemy ships
 // * Move enemy ships
 // * Handle/Refactor global variables
 
@@ -34,7 +35,7 @@ var stage,
 	*/
 	YOURSHIPSPRITEIMAGES = ["assets/images/dist/player_ship/Spritesheet_64x29.png"],
 
-	SPEED = 4,
+	SPEED = 0.25,
 
 	keysPressed = [],
 
@@ -45,16 +46,24 @@ var stage,
 stage = new createjs.Stage('dark_sun_shooter_canvas');
 starscapeBackground = new createjs.Bitmap(STARSCAPEIMAGEURL);
 
-function globalTickEventListener(elapsedTime)
+function globalTickEventListener(event)
 {
-	stage.update();
+	stage.update(event);
 }
 
-function yourSpriteTickEventListener(elapsedTime)
+function yourSpriteTickEventListener(event)
 {
+	var delta = event.params[0].delta,
+		angleAdjustment = -90, // Our Ship Sprite starts by facing right. This angle adjustment is so that all calculations will be correct by that assumption.
+		isKeyPressed = false,
+		angle,
+		velocityX,
+		velocityY;	
+
 	// Evalutes to true if at least one key is pressed
 	if(keysPressed[KEY_LEFT_CODE] | keysPressed[KEY_UP_CODE] | keysPressed[KEY_RIGHT_CODE] | keysPressed[KEY_DOWN_CODE])
 	{
+		isKeyPressed = true;
 		if(yourShipSprite.currentAnimation != 'move') yourShipSprite.gotoAndPlay('move');
 	}
 	else
@@ -62,28 +71,66 @@ function yourSpriteTickEventListener(elapsedTime)
 		if(yourShipSprite.currentAnimation != 'idle') yourShipSprite.gotoAndPlay('idle');	
 	}
 
-	if(keysPressed[KEY_LEFT_CODE] === true)
+	if(isKeyPressed == true)
 	{
-		yourShipSprite.rotation = 270 + (-90);
-		yourShipSprite.x -= SPEED;
-	}
+		console.log(event);
 
-	if(keysPressed[KEY_UP_CODE] === true)
-	{
-		yourShipSprite.rotation = 0 + (-90);
-		yourShipSprite.y -= SPEED;
-	}
+		if(keysPressed[KEY_UP_CODE] & keysPressed[KEY_LEFT_CODE])
+		{
+			// Up Left
+			//console.log('up-left');
+			angle = 315;
+		}
+		else if(keysPressed[KEY_UP_CODE] & keysPressed[KEY_RIGHT_CODE])
+		{
+			// Up Right
+			//console.log('up-right');
+			angle = 45;
+		}
+		else if(keysPressed[KEY_DOWN_CODE] & keysPressed[KEY_RIGHT_CODE])
+		{
+			// Down Right
+			//console.log('down-right');
+			angle = 135;
+		}
+		else if(keysPressed[KEY_DOWN_CODE] & keysPressed[KEY_LEFT_CODE])
+		{
+			// Down Left
+			//console.log('down-left');
+			angle = 225;	
+		}
+		else if(keysPressed[KEY_LEFT_CODE])
+		{
+			// Left
+			//console.log('left');
+			angle = 270;
+		}
+		else if(keysPressed[KEY_UP_CODE])
+		{
+			// Up
+			//console.log('up');
+			angle = 0;
+		}
+		else if(keysPressed[KEY_RIGHT_CODE])
+		{
+			// Right
+			//console.log('rightt');
+			angle = 90;
+		}
+		else if(keysPressed[KEY_DOWN_CODE])
+		{
+			// Down
+			//console.log('down');
+			angle = 180;
+		}
 
-	if(keysPressed[KEY_RIGHT_CODE] === true)
-	{
-		yourShipSprite.rotation = 90 + (-90);
-		yourShipSprite.x += SPEED;
-	}
+		yourShipSprite.rotation = angle + angleAdjustment; 
 
-	if(keysPressed[KEY_DOWN_CODE] === true)
-	{
-		yourShipSprite.rotation = 180 + (-90);
-		yourShipSprite.y += SPEED;
+		velocityX = Math.cos((angle + angleAdjustment) * Math.PI/180) * (SPEED * delta);
+		velocityY = Math.sin((angle + angleAdjustment) * Math.PI/180) * (SPEED * delta);
+		
+		yourShipSprite.x = yourShipSprite.x + velocityX;
+	    yourShipSprite.y = yourShipSprite.y + velocityY;
 	}
 }
 
